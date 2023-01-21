@@ -1,0 +1,12 @@
+{
+	"name": "@lix/micro-http-client",
+	"version": "0.9.1",
+	"description": "This is a compact http(s) client suitable for embedded systems",
+	"author": {
+		"name": "Lix N. Paulian",
+		"email": "lix@paulian.net"
+	},
+	"license": "MIT",
+	"xpack": {
+	}
+}
