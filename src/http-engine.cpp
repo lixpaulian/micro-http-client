@@ -162,6 +162,7 @@ namespace micro_http_client
     ssl_inited_ = false;
     use_ssl_ = false;
     certs_ = nullptr;
+    append_ = false;
 
 #if STATIC_SSL_CONTEXT == true
     ctx_ = &ssl_ctx;
@@ -641,23 +642,34 @@ namespace micro_http_client
         return false;
       }
 
-    int bytes = read_bytes ((unsigned char*) writeptr_, write_size_);
+    if (append_ == false)
+      {
+        // reset pointers
+        write_size_ = inbuf_size_ - 1;
+        readptr_ = writeptr_ = inbuf_;
+        recv_size_ = 0;
+      }
+    // else continue to fill the biffer from where the previous read left
+    int bytes = read_bytes (writeptr_ + recv_size_, write_size_ - recv_size_);
     if (bytes > 0) // we received something
       {
 #if HTTPC_DEBUG > 2
         trace::printf ("%s (%d): %.*s\n", __func__, bytes, bytes, writeptr_);
 #endif
-        inbuf_[bytes] = 0;
-        recv_size_ = bytes;
-
-        // reset pointers for next read
-        write_size_ = inbuf_size_ - 1;
-        readptr_ = writeptr_ = inbuf_;
-
+        recv_size_ += bytes;
+        inbuf_[recv_size_] = '\0';
         on_data ();
       }
     else if (bytes == 0) // remote has closed the connection
       {
+#if HTTPC_DEBUG > 0
+        if (append_)
+          {
+            trace::printf (
+                "%s(): incoming buffer overflowed, should be increased\n",
+                __func__);
+          }
+#endif
         close ();
       }
     else // whoops, error?
@@ -776,6 +788,7 @@ namespace micro_http_client
       }
     status_ = 0;
     in_progress_ = false;
+    append_ = false;
 
     return send_request (req);
   }
@@ -939,7 +952,7 @@ namespace micro_http_client
                            "\r\n");
 
 #if HTTPC_DEBUG > 1
-    trace::printf ("%s(): %s", __func__, header_buff_);
+        trace::printf ("%s(): %s", __func__, header_buff_);
 #endif
 
         req.header = header_buff_;
@@ -1252,23 +1265,19 @@ namespace micro_http_client
         const char* hdrend = strstr (hptr, "\r\n\r\n");
         if (!hdrend)
           {
-#if HTTPC_DEBUG > 0
-            trace::printf (
-                "%s(): could not find end-of-header marker, increase the incoming buffer\n",
-                __func__);
-#endif
+            // incomplete header, try to get more from the socket
+            append_ = true;
             break;
           }
-        else
-          {
+        append_ = false;
+
 #if HTTPC_DEBUG > 1
         trace::printf ("%s(): incoming header length %d\n", __func__,
                        hdrend - hptr);
 #endif
-          }
 
 #if HTTPC_DEBUG > 2
-    trace::printf("%s(): %s", __func__, hptr);
+        trace::printf ("%s(): %s", __func__, hptr);
 #endif
 
         hptr = strchr (hptr + 5, ' '); // skip "HTTP/", already known

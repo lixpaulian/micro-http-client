@@ -180,6 +180,7 @@ namespace micro_http_client
     size_t inbuf_size_; // size of internal buffer
     size_t write_size_; // how many bytes can be written to writeptr_;
     size_t recv_size_;  // incoming data size, max inbuf_size_ - 1
+    bool append_;
 
     long s_;
     bool nonblocking_;  // default true, otherwise the current thread is blocked
@@ -368,7 +369,7 @@ namespace micro_http_client
 
     static constexpr uint8_t VERSION_MAJOR = 0;
     static constexpr uint8_t VERSION_MINOR = 9;
-    static constexpr uint8_t VERSION_PATCH = 1;
+    static constexpr uint8_t VERSION_PATCH = 2;
 
     // request attributes
     const char* user_agent_;
