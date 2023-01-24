@@ -32,7 +32,8 @@ This project is largely based on `minihttp` written by fgenesis (https://github.
 In the `example` directory you will find reference code showing how to integrate the http client in your project. There are however several prerequisites:
 * The hardware initialisation of your board or device must be properly done, including the ethernet driver or ppp over serial code.
 * LwIP and mbedTLS must be already linked to your code and operational (tested).
-* You need about 128 KBytes of RAM; depending on what the rest of your code does/need, it can be less or can be more. That is because `mbdedTLS` needs quite some RAM (and much of it dynamically allocated).
+* You need about 128 KBytes of RAM; depending on what the rest of your code does/needs, it can be less or can be more. That is because `mbdedTLS` needs quite some RAM (and much of it dynamically allocated).
+* A console where you can output the results (can be also a trace output). You must define the symbol `PRINTF_` accordingly (in `example.cpp`).
 * Optionally a file system.
 
 The example has been successfully tested on a STM32F746G-DISCO Board using only the controller's 340 KBytes on-chip RAM (https://www.st.com/en/evaluation-tools/32f746gdiscovery.html). The project includes many other modules (RTOS, file system, HTTP/S server, TFTP, NTP, and more) and there are still about 180 KBytes RAM available.
