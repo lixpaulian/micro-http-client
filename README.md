@@ -46,6 +46,8 @@ In `example.cpp` it is shown how the functions of the new class are called to te
 * a HTTP POST
 * a HTTP GET to download a file to the file system
 
+If the test is run immediately after the hardware is powered on, you should allow at least 10 seconds from power-up until the test is run to let the IP stack to configure, particularly if the IP address is obtained via DHCP.
+
 Note: If you do not have a file system on your target, set the symbol `FILE_SYSTEM` to false (in `http-client.h`), then no file download test will be performed.
 
 ## CA Certificates
