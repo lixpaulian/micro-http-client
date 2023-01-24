@@ -35,15 +35,16 @@ In the `example` directory you will find reference code showing how to integrate
 * You need about 128 KBytes of RAM; depending on what the rest of your code does/need, it can be less or can be more. That is because `mbdedTLS` needs quite some RAM (and much of it dynamically allocated).
 * Optionally a file system.
 
-The example has been successfully tested on a STM32F746G-DISCO Board using only the controller's 340 KBytes on board RAM (https://www.st.com/en/evaluation-tools/32f746gdiscovery.html). The project includes many other modules (RTOS, file system, HTTP/S server, TFTP, NTP, and more) and there are still about 180 KBytes RAM available.
+The example has been successfully tested on a STM32F746G-DISCO Board using only the controller's 340 KBytes on-chip RAM (https://www.st.com/en/evaluation-tools/32f746gdiscovery.html). The project includes many other modules (RTOS, file system, HTTP/S server, TFTP, NTP, and more) and there are still about 180 KBytes RAM available.
 
-The `http-client.cpp` file contains an example implementation of the http client. The new class derived from the http_socket includes the initialisation and call-back functions as we saw fit for this example, but feel free to design it in such a way as to suit your needs.
+The `http-client.cpp` file contains an example implementation of the http client. The new class derived from `http_socket` includes the initialisation and call-back functions as we saw fit for this example, but feel free to design it in such a way as to suit your needs.
 
 In `example.cpp` it is shown how the functions of the new class are called to test the http client:
 * a simple HTTPS GET
 * a HTTP GET redirected to a HTTPS GET
 * a HTTP POST
 * a HTTP GET to download a file to the file system
+
 Note: If you do not have a file system on your target, set the symbol `FILE_SYSTEM` to false (in `http-client.h`), then no file download test will be performed.
 
 ## CA Certificates
