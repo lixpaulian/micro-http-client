@@ -27,8 +27,8 @@
  * Created on: 18 Jan 2023 (LNP)
  */
 
+#include <algorithm>
 #include <string.h>
-#include <cmsis-plus/posix-io/file-system.h>
 
 #include "http-client.h"
 
@@ -113,7 +113,7 @@ namespace micro_http_client
 #endif
 
 #if 1
-      // Cloudflare
+      // Cloudflare CA certificate
       "-----BEGIN CERTIFICATE-----\n"
       "MIIDzTCCArWgAwIBAgIQCjeHZF5ftIwiTv0b7RQMPDANBgkqhkiG9w0BAQsFADBa\n"
       "MQswCQYDVQQGEwJJRTESMBAGA1UEChMJQmFsdGltb3JlMRMwEQYDVQQLEwpDeWJl\n"
@@ -138,6 +138,35 @@ namespace micro_http_client
       "6DEdfgkfCv4+3ao8XnTSrLE=\n"
       "-----END CERTIFICATE-----\n"
 #endif
+
+#if 1
+      // Github CA certificate
+      "-----BEGIN CERTIFICATE-----\n"
+      "MIIEFzCCAv+gAwIBAgIQB/LzXIeod6967+lHmTUlvTANBgkqhkiG9w0BAQwFADBh\n"
+      "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\n"
+      "d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD\n"
+      "QTAeFw0yMTA0MTQwMDAwMDBaFw0zMTA0MTMyMzU5NTlaMFYxCzAJBgNVBAYTAlVT\n"
+      "MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxMDAuBgNVBAMTJ0RpZ2lDZXJ0IFRMUyBI\n"
+      "eWJyaWQgRUNDIFNIQTM4NCAyMDIwIENBMTB2MBAGByqGSM49AgEGBSuBBAAiA2IA\n"
+      "BMEbxppbmNmkKaDp1AS12+umsmxVwP/tmMZJLwYnUcu/cMEFesOxnYeJuq20ExfJ\n"
+      "qLSDyLiQ0cx0NTY8g3KwtdD3ImnI8YDEe0CPz2iHJlw5ifFNkU3aiYvkA8ND5b8v\n"
+      "c6OCAYIwggF+MBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFAq8CCkXjKU5\n"
+      "bXoOzjPHLrPt+8N6MB8GA1UdIwQYMBaAFAPeUDVW0Uy7ZvCj4hsbw5eyPdFVMA4G\n"
+      "A1UdDwEB/wQEAwIBhjAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwdgYI\n"
+      "KwYBBQUHAQEEajBoMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdpY2VydC5j\n"
+      "b20wQAYIKwYBBQUHMAKGNGh0dHA6Ly9jYWNlcnRzLmRpZ2ljZXJ0LmNvbS9EaWdp\n"
+      "Q2VydEdsb2JhbFJvb3RDQS5jcnQwQgYDVR0fBDswOTA3oDWgM4YxaHR0cDovL2Ny\n"
+      "bDMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0R2xvYmFsUm9vdENBLmNybDA9BgNVHSAE\n"
+      "NjA0MAsGCWCGSAGG/WwCATAHBgVngQwBATAIBgZngQwBAgEwCAYGZ4EMAQICMAgG\n"
+      "BmeBDAECAzANBgkqhkiG9w0BAQwFAAOCAQEAR1mBf9QbH7Bx9phdGLqYR5iwfnYr\n"
+      "6v8ai6wms0KNMeZK6BnQ79oU59cUkqGS8qcuLa/7Hfb7U7CKP/zYFgrpsC62pQsY\n"
+      "kDUmotr2qLcy/JUjS8ZFucTP5Hzu5sn4kL1y45nDHQsFfGqXbbKrAjbYwrwsAZI/\n"
+      "BKOLdRHHuSm8EdCGupK8JvllyDfNJvaGEwwEqonleLHBTnm8dqMLUeTF0J5q/hos\n"
+      "Vq4GNiejcxwIfZMy0MJEGdqN9A57HSgDKwmKdsp33Id6rHtSJlWncg+d0ohP/rEh\n"
+      "xRqhqjn1VtvChMQ1H3Dau0bwhr9kAMQ+959GG50jBbl9s08PqUU643QwmA==\n"
+      "-----END CERTIFICATE-----\n"
+
+#endif
   ;
 
   //----------------------------------------------------------------------------
@@ -147,7 +176,9 @@ namespace micro_http_client
   {
     buff_ = nullptr;
     buff_len_ = 0;
+#if FILE_SYSTEM == true
     f_ = nullptr;
+#endif
     finished_ = false;
     set_certs (SSL_CA_PEM);
   }
@@ -172,8 +203,10 @@ namespace micro_http_client
   {
     bool result = false;
     buff_ = pp->buff;
-    buff_len_ = pp->buff_len;
+    buff_len_ = pp->buff_len - 1;
+#if FILE_SYSTEM == true
     f_ = pp->f;
+#endif
     finished_ = false;
 
     if ((result = transaction (pp->url, nullptr, pp->post, strlen (pp->post))))
@@ -218,11 +251,13 @@ namespace micro_http_client
   void
   http_client::on_recv (uint8_t* buf, size_t cnt)
   {
+#if FILE_SYSTEM == true
     if (f_)
       {
-        f_->write (buf, cnt); // TODO: handle file system errors
+        f_->write (buf, cnt); // TODO: should handle possible file system errors
       }
     else
+#endif
       {
         if (buff_len_)
           {

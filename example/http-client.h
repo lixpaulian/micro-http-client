@@ -27,26 +27,35 @@
  * Created on: 18 Jan 2023 (LNP)
  */
 
-
-
-
 #ifndef EXAMPLE_HTTP_CLIENT_H_
 #define EXAMPLE_HTTP_CLIENT_H_
 
 #include "http-engine.h"
+
+#define FILE_SYSTEM true
+
+#if FILE_SYSTEM == true
+#include <cmsis-plus/posix-io/file-system.h>
+#include <cmsis-plus/posix-io/file.h>
+#include <fcntl.h>
+#endif
 
 namespace micro_http_client
 {
 
   typedef struct
   {
-    char* url;
+    const char* url;
     const char* post;
     uint8_t* buff;
     size_t buff_len;
+#if FILE_SYSTEM == true
     os::posix::io* f;
+#endif
   } params_t;
 
+  // create a new class from http_socket to suit your needs (set-up parameters,
+  // handle call-backs, etc.)
 
   class http_client : public http_socket
   {
@@ -82,7 +91,9 @@ namespace micro_http_client
 
     uint8_t* buff_;
     size_t buff_len_;
+#if FILE_SYSTEM == true
     os::posix::io* f_;
+#endif
     bool finished_;
 
   };
