@@ -251,6 +251,12 @@ namespace micro_http_client
     }
 
     void
+    set_conent_type (const char* s)
+    {
+      content_type_ = s;
+    }
+
+    void
     set_folllow_redirect (bool follow)
     {
       follow_redir_ = follow;
@@ -263,11 +269,11 @@ namespace micro_http_client
     }
 
     bool
-    transaction (char* url, char* extra_header, const char* post,
+    transaction (const char* url, char* extra_header, const char* post,
                  size_t post_len);
 
     bool
-    split_uri (char* uri, request& req);
+    split_uri (const char* uri, request& req);
 
     bool
     send_request (request& what);
@@ -369,11 +375,12 @@ namespace micro_http_client
 
     static constexpr uint8_t VERSION_MAJOR = 0;
     static constexpr uint8_t VERSION_MINOR = 9;
-    static constexpr uint8_t VERSION_PATCH = 2;
+    static constexpr uint8_t VERSION_PATCH = 3;
 
     // request attributes
     const char* user_agent_;
     const char* accept_encoding_; // default empty
+    const char* content_type_;
     unsigned int keep_alive_;     // http related
 
     // answer attributes

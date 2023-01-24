@@ -1,7 +1,7 @@
 {
 	"name": "@lix/micro-http-client",
-	"version": "0.9.2",
-	"description": "This is a compact http(s) client suitable for embedded systems",
+	"version": "0.9.3",
+	"description": "A compact http(s) client suitable for embedded systems",
 	"author": {
 		"name": "Lix N. Paulian",
 		"email": "lix@paulian.net"

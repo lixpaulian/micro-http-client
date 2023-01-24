@@ -708,6 +708,7 @@ namespace micro_http_client
   {
     keep_alive_ = 0;
     content_len_ = 0;
+    content_type_ = nullptr;
     status_ = 0;
     user_agent_ = nullptr;
     accept_encoding_ = nullptr;
@@ -763,8 +764,8 @@ namespace micro_http_client
   }
 
   bool
-  http_socket::transaction (char* url, char* extra_header, const char* post,
-                            size_t post_len)
+  http_socket::transaction (const char* url, char* extra_header,
+                            const char* post, size_t post_len)
   {
     request req;
     memset (&req, 0, sizeof(request));
@@ -833,11 +834,11 @@ namespace micro_http_client
   }
 
   bool
-  http_socket::split_uri (char* uri, request& req)
+  http_socket::split_uri (const char* uri, request& req)
   {
     static char slash[] =
       { "/" };
-    char* p = uri;
+    const char* p = uri;
     req.port = 80;      // set a default
     bool ssl = false;
     char* sl = strstr (p, "//");
@@ -942,10 +943,10 @@ namespace micro_http_client
 
         if (req.post)
           {
-            count += snprintf (
-                header_buff_ + count, sizeof(header_buff_) - count,
-                "Content-Length: %d\r\nContent-Type: text/xml\r\n",
-                req.post_len);
+            count += snprintf (header_buff_ + count,
+                               sizeof(header_buff_) - count,
+                               "Content-Length: %d\r\nContent-Type: %s\r\n",
+                               req.post_len, content_type_);
           }
 
         count += snprintf (header_buff_ + count, sizeof(header_buff_) - count,
