@@ -41,7 +41,7 @@ In `example.cpp` it is shown how the functions of the new class are called to te
 * a HTTP GET redirected to a HTTPS GET
 * a HTTP POST
 * a HTTP GET to download a file to the file system
-Note: If you do not have a file system on your target, set the symbol `FILE_SYSTEM` to false (in `http-client.h`)
+Note: If you do not have a file system on your target, set the symbol `FILE_SYSTEM` to false (in `http-client.h`), then no file download test will be performed.
 
 ## CA Certificates
 You may notice that the file `http-client.cpp` includes several certificates. You may need to add or remove certificates, depending on where you want to connect your http client to. For more information on this issue, please consult the mbedTLS web site (in particular https://os.mbed.com/docs/mbed-os/v5.15/tutorials/tls-tutorial.html).
