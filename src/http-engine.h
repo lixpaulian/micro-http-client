@@ -251,7 +251,7 @@ namespace micro_http_client
     }
 
     void
-    set_conent_type (const char* s)
+    set_content_type (const char* s)
     {
       content_type_ = s;
     }

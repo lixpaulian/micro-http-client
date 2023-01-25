@@ -108,7 +108,7 @@ httptest (void)
   PRINTF_ ("HTTPS POST test\n");
   pp.url = reqbin_url;
   pp.post = post_req;
-  httpclnt.set_conent_type ("application/json");
+  httpclnt.set_content_type ("application/json");
   if (httpclnt.xfer (&pp))
     {
       PRINTF_ ("%s\n", data);
