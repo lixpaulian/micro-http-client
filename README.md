@@ -44,8 +44,8 @@ The `http-client.cpp` file contains an example implementation of the http client
 In `example.cpp` it is shown how the functions of the new class are called to test the http client:
 * a simple HTTPS GET
 * a HTTP GET redirected to a HTTPS GET
-* a HTTP POST
-* a HTTP GET to download a file to the file system
+* a HTTPS POST
+* a HTTPS GET to download a file to the file system
 
 If the test is run immediately after the hardware is powered on, you should allow at least 10 seconds from power-up until the test is run to let the IP stack to configure, particularly if the IP address is obtained via DHCP.
 
