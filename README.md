@@ -8,14 +8,15 @@ A compact http/s client written in C++ suitable for embedded systems. It was spe
 * MIT
 
 ## Package
-The software is provided as an xPack and can be added to an Eclipse based project (however, the `include` and `source` paths must be manually added to the project in Eclipse). For more details on xPacks see https://github.com/xpacks. The installation script requires the helper scripts that can be found at https://github.com/xpacks/scripts. Note that currently the xpacks project is undergoing structural changes and therefore the `scripts` directory will be deprecated.
-Of course, the files can be also manually added to any project.
+The software is provided as an xPack and can be added to an Eclipse based project (however, the `include` and `source` paths must be manually added to the project in Eclipse). For more details on xPacks see https://github.com/xpacks. The installation script requires the helper scripts that can be found at https://github.com/xpacks/scripts.
+
+Note that currently the xpacks project is undergoing structural changes and therefore the `scripts` directory will be deprecated. Of course, the files can be also manually added to any project.
 
 ## Dependencies
 This software depends on the following package, available as xPack:
 * µOS++ (https://github.com/micro-os-plus/micro-os-plus-iii)
 
-In addition, the software requires a TCP/IP stack and, if https is also envisaged, an SSL library. The project has been developed using the combination of LwIP and mbdedTLS. These packages have been forked from their respective repositories as follows:
+In addition, the software requires a TCP/IP stack and, if https is also envisaged, an SSL library. The project has been developed using the combination of LwIP and mbedTLS. These packages have been forked from their respective repositories as follows:
 
 * LwIP version 2.1.4 (https://git.savannah.nongnu.org/git/lwip.git)
 * mbedTLS version 2.28.2 LTS (https://github.com/ARMmbed/mbedtls.git)
@@ -31,12 +32,12 @@ This project is largely based on `minihttp` written by fgenesis (https://github.
 ## How to Use
 In the `example` directory you will find reference code showing how to integrate the http client in your project. There are however several prerequisites:
 * The hardware initialisation of your board or device must be properly done, including the ethernet driver or ppp over serial code.
-* LwIP and mbedTLS must be already linked to your code and operational (tested).
-* You need about 128 KBytes of RAM; depending on what the rest of your code does/needs, it can be less or can be more. That is because `mbdedTLS` needs quite some RAM (and much of it dynamically allocated).
+* `LwIP` and `mbedTLS` must be already linked to your code and operational (tested).
+* You need about 128 KBytes of RAM; depending on what the rest of your code does/needs, it can be less or can be more. That is because `mbedTLS` needs quite some RAM (and much of it dynamically allocated).
 * A console where you can output the results (can be also a trace output). You must define the symbol `PRINTF_` accordingly (in `example.cpp`).
 * Optionally a file system.
 
-The example has been successfully tested on a STM32F746G-DISCO Board using only the controller's 340 KBytes on-chip RAM (https://www.st.com/en/evaluation-tools/32f746gdiscovery.html). The project includes many other modules (RTOS, file system, HTTP/S server, TFTP, NTP, and more) and there are still about 180 KBytes RAM available.
+The example has been successfully tested on a STM32F746G-DISCO Board (https://www.st.com/en/evaluation-tools/32f746gdiscovery.html) using only the controller's 340 KBytes on-chip RAM. The project includes other modules too (RTOS, file system, HTTP/S server, TFTP, NTP, and more) and there are still about 180 KBytes RAM available.
 
 The `http-client.cpp` file contains an example implementation of the http client. The new class derived from `http_socket` includes the initialisation and call-back functions as we saw fit for this example, but feel free to design it in such a way as to suit your needs.
 
