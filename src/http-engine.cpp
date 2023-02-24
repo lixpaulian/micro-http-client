@@ -35,13 +35,7 @@
 #include <cmsis-plus/diag/trace.h>
 #include <assert.h>
 
-#include <http-engine.h>
-
-// 0 - no debug, 1 - light, 2 - fair, 3 - heavy debug messages
-#define HTTPC_DEBUG 1
-
-// for a statically defined SSL context, set it to true
-#define STATIC_SSL_CONTEXT false
+#include "http-engine.h"
 
 #define INVALID_SOCKET (SOCKET)(~0)
 #define SOCKETVALID(s) ((s) != INVALID_SOCKET)
@@ -111,12 +105,13 @@ namespace micro_http_client
             break;
           }
 
-        mbedtls_ssl_conf_authmode (&conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+        mbedtls_ssl_conf_authmode (&conf, MBEDTLS_SSL_VERIFY);
         mbedtls_ssl_conf_ca_chain (&conf, &cacert, NULL);
 
-        /* SSLv3 is deprecated, set minimum to TLS 1.2 */
-        mbedtls_ssl_conf_min_version (&conf, MBEDTLS_SSL_MAJOR_VERSION_3,
-        MBEDTLS_SSL_MINOR_VERSION_3);
+        /* SSLv3, TLS 1.0 and 1.1 are deprecated, minimum should be TLS 1.2 */
+        /* TODO: Due to the old update server currently set to TLS 1.0 */
+        mbedtls_ssl_conf_min_version (&conf, MBEDTLS_SSL_MAJOR_VERSION,
+        MBEDTLS_SSL_MINOR_VERSION);
 
         mbedtls_ssl_conf_rng (&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
         mbedtls_ssl_conf_dbg (&conf, nullptr, nullptr); // no debug
@@ -196,7 +191,7 @@ namespace micro_http_client
         if (use_ssl_)
           {
 #if STATIC_SSL_CONTEXT == true
-        ctx_->reset ();
+            ctx_->reset ();
 #else
             delete ctx_;
             ctx_ = nullptr;
@@ -372,22 +367,20 @@ namespace micro_http_client
         // hostname set here should match CN in server certificate
         mbedtls_ssl_set_hostname (&ctx_->ssl, host);
       }
+    use_ssl_ = useSSL;
+    recv_size_ = 0;
 
     assert(!SOCKETVALID(s_));
 
-    recv_size_ = 0;
-
+    SOCKET s;
+    if (!open_socket (&s, host, port))
       {
-        SOCKET s;
-        if (!open_socket (&s, host, port))
-          {
 #if HTTPC_DEBUG > 0
-            trace::printf ("%s(): failed\n", __func__);
+        trace::printf ("%s(): failed\n", __func__);
 #endif
-            return false;
-          }
-        s_ = s;
+        return false;
       }
+    s_ = s;
 
     // restore setting if it was set in invalid state. static call
     // because s_ is intentionally still invalid here.
@@ -404,8 +397,6 @@ namespace micro_http_client
             return false;
           }
       }
-
-    use_ssl_ = useSSL;
 
     on_open ();
 

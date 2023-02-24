@@ -36,15 +36,58 @@
 
 #include <stdlib.h>
 
+#include <mbedtls_config.h>
 #include <mbedtls/net.h>
 #include <mbedtls/ssl.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/ctr_drbg.h>
 
+#include "http-client-config.h"
+
+// configurable definitions, customization should be done in http-client-config.h
+
 // define the header buffer to fit the longest header to be sent at a request
+#if !defined REQUEST_HEADER_BUFFER_LEN
 #define REQUEST_HEADER_BUFFER_LEN 512
+#endif
+
+// should be large enough to accommodate the largest redirect URL expected
+#if !defined REDIRECT_BUFFER_LEN
 #define REDIRECT_BUFFER_LEN 128
+#endif
+
+// should be large enough to accommodate the largest host name, both requested
+// and as the result of a redirect
+#if !defined HOSTNAME_BUFFER_LEN
 #define HOSTNAME_BUFFER_LEN 64
+#endif
+
+// to reduce dynamic memory allocation set it to true
+#if !defined STATIC_SSL_CONTEXT
+#define STATIC_SSL_CONTEXT false
+#endif
+
+// define the accepted security level (see include/mbedtls/ssl.h)
+#if !defined MBEDTLS_SSL_MAJOR_VERSION
+#define MBEDTLS_SSL_MAJOR_VERSION MBEDTLS_SSL_MAJOR_VERSION_3
+#endif
+
+// in combination with MBEDTLS_SSL_MAJOR_VERSION_3, this gives TLS v1.2
+#if !defined MBEDTLS_SSL_MINOR_VERSION
+#define MBEDTLS_SSL_MINOR_VERSION MBEDTLS_SSL_MINOR_VERSION_3
+#endif
+
+// can be NONE, OPTIONAL, REQUIRED, UNSET (see include/mbedtls/ssl.h)
+#if !defined MBEDTLS_SSL_VERIFY
+#define MBEDTLS_SSL_VERIFY MBEDTLS_SSL_VERIFY_REQUIRED
+#endif
+
+// set debug level: 0 - no debug, 1 - light, 2 - fair, 3 - heavy debug messages
+#if !defined HTTPC_DEBUG
+#define HTTPC_DEBUG 0
+#endif
+
+//------------------------------------------------------------------------------
 
 namespace micro_http_client
 {
@@ -375,7 +418,7 @@ namespace micro_http_client
 
     static constexpr uint8_t VERSION_MAJOR = 0;
     static constexpr uint8_t VERSION_MINOR = 9;
-    static constexpr uint8_t VERSION_PATCH = 3;
+    static constexpr uint8_t VERSION_PATCH = 4;
 
     // request attributes
     const char* user_agent_;
