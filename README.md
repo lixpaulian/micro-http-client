@@ -2,7 +2,7 @@
 A compact http/s client written in C++ suitable for embedded systems. It was specifically developed for µOS++ but can be ported to other POSIX compliant RTOSes.
 
 ## Version
-* 0.9.3 (24 Jan 2023)
+* 0.9.4 (24 Feb 2023)
 
 ## License
 * MIT
@@ -36,6 +36,7 @@ In the `example` directory you will find reference code showing how to integrate
 * You need about 128 KBytes of RAM; depending on what the rest of your code does/needs, it can be less or can be more. That is because `mbedTLS` needs quite some RAM (and much of it dynamically allocated).
 * A console where you can output the results (can be also a trace output). You must define the symbol `PRINTF_` accordingly (in `example.cpp`).
 * Optionally a file system.
+* There are certain parameters that can be configured through their respective definitions in the http-client-config.h file. If the defaults are okay for you, you can leave the file empty; however, the file is needed otherwise you get a compile error.
 
 The example has been successfully tested on a STM32F746G-DISCO Board (https://www.st.com/en/evaluation-tools/32f746gdiscovery.html) using only the controller's 340 KBytes on-chip RAM. The project includes other modules too (RTOS, file system, HTTP/S server, TFTP, NTP, and more) and there are still about 180 KBytes RAM available.
 
