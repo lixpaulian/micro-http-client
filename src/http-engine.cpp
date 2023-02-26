@@ -71,18 +71,17 @@ namespace micro_http_client
     mbedtls_ssl_config_free (&conf);
   }
 
-  bool
+  int
   ssl_context::init (void)
   {
-    bool result = false;
     const char* pers = "the quick brown fox";
     const size_t perslen = strlen (pers);
+    int err;
 
     do
       {
-        int err = mbedtls_ctr_drbg_seed (&ctr_drbg, mbedtls_entropy_func,
-                                         &entropy, (const unsigned char*) pers,
-                                         perslen);
+        err = mbedtls_ctr_drbg_seed (&ctr_drbg, mbedtls_entropy_func, &entropy,
+                                     (const unsigned char*) pers, perslen);
         if (err)
           {
 #if HTTPC_DEBUG > 0
@@ -123,14 +122,11 @@ namespace micro_http_client
             trace::printf ("%s(): mbedtls_ssl_setup returned %d\n", __func__,
                            err);
 #endif
-            break;
           }
-
-        result = true;   // success
       }
     while (0);
 
-    return result;
+    return err;
   }
 
   void
@@ -158,6 +154,7 @@ namespace micro_http_client
     use_ssl_ = false;
     certs_ = nullptr;
     append_ = false;
+    mbedtls_error_ = 0;
 
 #if STATIC_SSL_CONTEXT == true
     ctx_ = &ssl_ctx;
@@ -205,7 +202,7 @@ namespace micro_http_client
   }
 
   void
-  tcp_socket::on_close_internal ()
+  tcp_socket::on_close_internal (void)
   {
     on_close ();
   }
@@ -213,23 +210,22 @@ namespace micro_http_client
   bool
   tcp_socket::set_non_blocking (bool nonblock)
   {
-    bool result = false;
-
     nonblocking_ = nonblock;
 
     if (SOCKETVALID(s_))
       {
         if (nonblock)
           {
-            result = mbedtls_net_set_nonblock ((mbedtls_net_context*) &s_) == 0;
+            mbedtls_error_ = mbedtls_net_set_nonblock (
+                (mbedtls_net_context*) &s_);
           }
         else
           {
-            result = mbedtls_net_set_block ((mbedtls_net_context*) &s_) == 0;
+            mbedtls_error_ = mbedtls_net_set_block ((mbedtls_net_context*) &s_);
           }
       }
 
-    return result;
+    return (mbedtls_error_ == 0);
   }
 
   bool
@@ -240,13 +236,14 @@ namespace micro_http_client
     bool result;
 
     sprintf (portstr, "%d", port);
-    int err = mbedtls_net_connect ((mbedtls_net_context*) &s, host, portstr,
-    MBEDTLS_NET_PROTO_TCP);
-    if (err)
+    mbedtls_error_ = mbedtls_net_connect ((mbedtls_net_context*) &s, host,
+                                          portstr,
+                                          MBEDTLS_NET_PROTO_TCP);
+    if (mbedtls_error_)
       {
 #if HTTPC_DEBUG > 0
-        trace::printf ("%s(): net_connect(%s, %u) returned %d\n", __func__,
-                       host, port, err);
+        trace::printf ("%s(): net_connect(%s, %u) returned -0x%x\n", __func__,
+                       host, port, -mbedtls_error_);
 #endif
         result = false;
       }
@@ -269,15 +266,14 @@ namespace micro_http_client
     trace::printf ("%s(): SSL handshake now...\n", __func__);
 #endif
 
-    int err;
-    while ((err = mbedtls_ssl_handshake (&ctx_->ssl)))
+    while ((mbedtls_error_ = mbedtls_ssl_handshake (&ctx_->ssl)))
       {
-        if (err != MBEDTLS_ERR_SSL_WANT_READ
-            && err != MBEDTLS_ERR_SSL_WANT_WRITE)
+        if (mbedtls_error_ != MBEDTLS_ERR_SSL_WANT_READ
+            && mbedtls_error_ != MBEDTLS_ERR_SSL_WANT_WRITE)
           {
 #if HTTPC_DEBUG > 0
             trace::printf ("%s(): ssl_handshake returned -0x%x\n", __func__,
-                           -err);
+                           -mbedtls_error_);
 #endif
             return false;
           }
@@ -414,19 +410,19 @@ namespace micro_http_client
 
     if (ctx_)
       {
-        if (ctx_->init ())
+        if ((mbedtls_error_ = ctx_->init ()) == 0)
           {
             if (certs)
               {
-                int err = mbedtls_x509_crt_parse (&ctx_->cacert,
-                                                  (const unsigned char*) certs,
-                                                  strlen (certs) + 1);
-                if (err)
+                mbedtls_error_ = mbedtls_x509_crt_parse (
+                    &ctx_->cacert, (const unsigned char*) certs,
+                    strlen (certs) + 1);
+                if (mbedtls_error_)
                   {
                     ctx_->reset ();
 #if HTTPC_DEBUG > 0
-                    trace::printf ("%s(): x509_crt_parse() returned %d\n",
-                                   __func__, err);
+                    trace::printf ("%s(): x509_crt_parse() returned -0x%x\n",
+                                   __func__, -mbedtls_error_);
 #endif
                   }
                 else
@@ -540,9 +536,8 @@ namespace micro_http_client
         else if (ret < 0)
           {
 #if HTTPC_DEBUG > 0
-            int err = ret == -1 ? errno : ret;
-            trace::printf ("%s(): error %d: %s\n", __func__, err,
-                           strerror (err));
+            mbedtls_error_ = ret == -1 ? errno : ret;
+            trace::printf ("%s(): error -0x%x\n", __func__, -mbedtls_error_);
 #endif
             close ();
             return false;
@@ -573,7 +568,9 @@ namespace micro_http_client
     switch (err)
       {
       case MBEDTLS_ERR_SSL_WANT_WRITE:
-        ret = 0; // FIXME: Nothing written, try later?
+      case MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS:
+      case MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS:
+        ret = 0; // nothing written, try again later
         break;
 
       default:
@@ -594,7 +591,7 @@ namespace micro_http_client
   }
 
   void
-  tcp_socket::on_data ()
+  tcp_socket::on_data (void)
   {
     on_recv (readptr_, recv_size_);
   }
@@ -640,7 +637,7 @@ namespace micro_http_client
         readptr_ = writeptr_ = inbuf_;
         recv_size_ = 0;
       }
-    // else continue to fill the biffer from where the previous read left
+    // else continue to fill the buffer from where the previous read left
     int bytes = read_bytes (writeptr_ + recv_size_, write_size_ - recv_size_);
     if (bytes > 0) // we received something
       {
@@ -667,8 +664,8 @@ namespace micro_http_client
       {
         // possible that the error is returned directly (in that case,
         // < -1, or -1 is returned and the error has to be retrieved separately.
-        int err = bytes == -1 ? errno : bytes;
-        switch (err)
+        mbedtls_error_ = bytes == -1 ? errno : bytes;
+        switch (mbedtls_error_)
           {
           case EWOULDBLOCK:
             return false;
@@ -678,7 +675,7 @@ namespace micro_http_client
 
           default:
 #if HTTPC_DEBUG > 0
-            trace::printf ("%s(): (%d): %s\n", __func__, err, strerror (err));
+            trace::printf ("%s(): error -0x%x\n", __func__, -mbedtls_error_);
 #endif
             /* no break */
           case ECONNRESET:
@@ -716,7 +713,7 @@ namespace micro_http_client
   }
 
   void
-  http_socket::on_open ()
+  http_socket::on_open (void)
   {
     tcp_socket::on_open ();
     chunked_transfer_ = false;
@@ -724,7 +721,7 @@ namespace micro_http_client
   }
 
   void
-  http_socket::on_close_internal ()
+  http_socket::on_close_internal (void)
   {
     if (!is_redirecting () || always_handle_)
       {
@@ -733,7 +730,7 @@ namespace micro_http_client
   }
 
   bool
-  http_socket::on_update ()
+  http_socket::on_update (void)
   {
     if (!tcp_socket::on_update ())
       {
@@ -1163,7 +1160,7 @@ namespace micro_http_client
   }
 
   bool
-  http_socket::handle_status ()
+  http_socket::handle_status (void)
   {
     bool result = false;
     remaining_ = content_len_;
@@ -1217,7 +1214,7 @@ namespace micro_http_client
 #pragma GCC diagnostic pop
 
   bool
-  http_socket::is_redirecting ()
+  http_socket::is_redirecting (void)
   {
     switch (status_)
       {
@@ -1232,7 +1229,7 @@ namespace micro_http_client
   }
 
   bool
-  http_socket::is_success ()
+  http_socket::is_success (void)
   {
     return status_ >= 200 && status_ <= 205;
   }
@@ -1361,7 +1358,7 @@ namespace micro_http_client
   }
 
   void
-  http_socket::on_close ()
+  http_socket::on_close (void)
   {
     if (!more_data ())
       {

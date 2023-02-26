@@ -100,7 +100,7 @@ namespace micro_http_client
 
     ~ssl_context (void);
 
-    bool
+    int
     init (void);
 
     void
@@ -130,12 +130,12 @@ namespace micro_http_client
     open (const char* addr, unsigned int port, bool useSSL);
 
     void
-    close ();
+    close (void);
 
     // returns true if something interesting happened (incoming data,
     // closed connection, etc)
     bool
-    update ();
+    update (void);
 
     bool
     is_open (void);
@@ -178,6 +178,12 @@ namespace micro_http_client
     ssl_result_t
     verify_ssl (char* buf, unsigned buflen);
 
+    int
+    get_last_error (void)
+    {
+      return -mbedtls_error_;
+    }
+
   protected:
 
     bool
@@ -187,7 +193,7 @@ namespace micro_http_client
     open_ssl (void* ps);
 
     virtual void
-    on_close_internal ();
+    on_close_internal (void);
 
     virtual void
     on_data (); // data received callback; internal, should only be overloaded
@@ -197,17 +203,17 @@ namespace micro_http_client
     on_recv (uint8_t* buf, unsigned int size) = 0;
 
     virtual void
-    on_close ()
+    on_close (void)
     {
     } // close callback
 
     virtual void
-    on_open ()
+    on_open (void)
     {
     } // called when opened
 
     virtual bool
-    on_update ()
+    on_update (void)
     {
       return true;
     } // called before reading from the socket
@@ -232,6 +238,7 @@ namespace micro_http_client
 
     const char* last_host_;
     unsigned int last_port_; // port used in last open() call
+    int mbedtls_error_;  // last error returned by mbedtls
 
   private:
 
@@ -256,11 +263,6 @@ namespace micro_http_client
 
     virtual
     ~http_socket ();
-
-    enum HttpCode
-    {
-      HTTP_OK = 200, HTTP_NOTFOUND = 404,
-    };
 
     struct request
     {
@@ -322,25 +324,25 @@ namespace micro_http_client
     send_request (request& what);
 
     unsigned int
-    get_remaining ()
+    get_remaining (void)
     {
       return remaining_;
     }
 
     unsigned int
-    get_status_code ()
+    get_status_code (void)
     {
       return status_;
     }
 
     unsigned int
-    get_content_len ()
+    get_content_len (void)
     {
       return content_len_;
     }
 
     bool
-    chunked_transfer ()
+    chunked_transfer (void)
     {
       return chunked_transfer_;
     }
@@ -352,10 +354,10 @@ namespace micro_http_client
     }
 
     bool
-    is_redirecting ();
+    is_redirecting (void);
 
     bool
-    is_success ();
+    is_success (void);
 
     void
     get_version (uint8_t& version_major, uint8_t& version_minor,
@@ -369,10 +371,10 @@ namespace micro_http_client
   protected:
 
     virtual void
-    on_close_internal ();
+    on_close_internal (void);
 
     virtual void
-    on_close ();
+    on_close (void);
 
     virtual void
     on_data ();  // data received callback; internal, should only be overloaded
@@ -381,14 +383,14 @@ namespace micro_http_client
     on_recv (uint8_t* buf, size_t cnt) = 0;
 
     virtual void
-    on_open ();  // called when opened
+    on_open (void);  // called when opened
 
     virtual bool
-    on_update (); // called before reading from the socket
+    on_update (void); // called before reading from the socket
 
     // new ones:
     virtual void
-    on_request_done ()
+    on_request_done (void)
     {
     }
 
@@ -396,29 +398,29 @@ namespace micro_http_client
     redirect (char* loc, bool forceGET);
 
     void
-    process_chunk ();
+    process_chunk (void);
 
     bool
     open_request (const request& req);
 
     bool
-    parse_header ();
+    parse_header (void);
 
     void
     parse_header_fields (const char* s, size_t size);
 
     bool
-    handle_status (); // handle HTTP result status
+    handle_status (void); // handle HTTP result status
 
     void
-    finish_request ();
+    finish_request (void);
 
     void
     on_recv_internal (uint8_t* buf, unsigned int size);
 
     static constexpr uint8_t VERSION_MAJOR = 0;
     static constexpr uint8_t VERSION_MINOR = 9;
-    static constexpr uint8_t VERSION_PATCH = 4;
+    static constexpr uint8_t VERSION_PATCH = 5;
 
     // request attributes
     const char* user_agent_;
