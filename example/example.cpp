@@ -88,7 +88,7 @@ httptest (void)
     }
   else
     {
-      PRINTF_ ("failed\n");
+      PRINTF_ ("failed with error %X\n", httpclnt.get_last_error ());
     }
   httpclnt.close ();
 
@@ -101,7 +101,7 @@ httptest (void)
     }
   else
     {
-      PRINTF_ ("failed\n");
+      PRINTF_ ("failed with error %X\n", httpclnt.get_last_error ());
     }
   httpclnt.close ();
 
@@ -116,7 +116,7 @@ httptest (void)
     }
   else
     {
-      PRINTF_ ("failed\n");
+      PRINTF_ ("failed with error %X\n", httpclnt.get_last_error ());
     }
   httpclnt.close ();
 
@@ -137,7 +137,7 @@ httptest (void)
         }
       else
         {
-          PRINTF_ ("failed\n");
+          PRINTF_ ("failed with error %X\n", httpclnt.get_last_error ());
         }
       pp.f->close ();
       httpclnt.close ();
