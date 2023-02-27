@@ -1,6 +1,6 @@
 {
 	"name": "@lix/micro-http-client",
-	"version": "0.9.5",
+	"version": "0.9.6",
 	"description": "A compact http(s) client suitable for embedded systems",
 	"author": {
 		"name": "Lix N. Paulian",
