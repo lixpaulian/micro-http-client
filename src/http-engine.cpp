@@ -374,6 +374,11 @@ namespace micro_http_client
 #if HTTPC_DEBUG > 0
         trace::printf ("%s(): failed\n", __func__);
 #endif
+        if (useSSL)
+          {
+            delete ctx_;
+            ctx_ = nullptr;
+          }
         return false;
       }
     s_ = s;
