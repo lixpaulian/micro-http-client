@@ -318,6 +318,9 @@ namespace micro_http_client
                  size_t post_len);
 
     bool
+    transaction (request& req);
+
+    bool
     split_uri (const char* uri, request& req);
 
     bool
@@ -420,7 +423,7 @@ namespace micro_http_client
 
     static constexpr uint8_t VERSION_MAJOR = 0;
     static constexpr uint8_t VERSION_MINOR = 9;
-    static constexpr uint8_t VERSION_PATCH = 6;
+    static constexpr uint8_t VERSION_PATCH = 7;
 
     // request attributes
     const char* user_agent_;
