@@ -647,7 +647,7 @@ namespace micro_http_client
     if (bytes > 0) // we received something
       {
 #if HTTPC_DEBUG > 2
-        trace::printf ("%s (%d): %.*s\n", __func__, bytes, bytes, writeptr_);
+        trace::printf ("%s() (%d): %.*s\n", __func__, bytes, bytes, writeptr_);
 #endif
         recv_size_ += bytes;
         inbuf_[recv_size_] = '\0';
@@ -761,25 +761,29 @@ namespace micro_http_client
                             const char* post, size_t post_len)
   {
     request req;
+
     memset (&req, 0, sizeof(request));
+    split_uri (url, req);
 
     if (post)
       {
         req.post = post;
         req.post_len = post_len;
       }
-
-    split_uri (url, req);
-    if (is_redirecting () && req.host[0] == '\0')
-      {
-        // if we're following a redirection to the same host,
-        // the server is likely to omit its hostname
-        req.host = cur_request_.host;
-      }
     if (extra_header)
       {
         req.extra_header = extra_header;
       }
+    status_ = 0;
+    in_progress_ = false;
+    append_ = false;
+
+    return send_request (req);
+  }
+
+  bool
+  http_socket::transaction (request& req)
+  {
     status_ = 0;
     in_progress_ = false;
     append_ = false;
