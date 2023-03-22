@@ -2,7 +2,7 @@
 A compact http/s client written in C++ suitable for embedded systems. It was specifically developed for µOS++ but can be ported to other POSIX compliant RTOSes.
 
 ## Version
-* 0.9.6 (27 Feb 2023)
+* 0.9.7 (22 Mar 2023)
 
 ## License
 * MIT
