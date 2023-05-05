@@ -192,7 +192,6 @@ namespace micro_http_client
   {
     // you may want to set here the http parameters as you see fit
     set_keep_alive (5);
-    set_non_blocking (false);
     set_user_agent ("micro_http_client");
     set_folllow_redirect (true);
     set_always_handle (true);
