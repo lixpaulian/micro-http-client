@@ -2,7 +2,7 @@
 A compact http/s client written in C++ suitable for embedded systems. It was specifically developed for µOS++ but can be ported to other POSIX compliant RTOSes.
 
 ## Version
-* 0.9.7 (22 Mar 2023)
+* 1.0.0 (5 May 2023)
 
 ## License
 * MIT
@@ -51,6 +51,34 @@ In `example.cpp` it is shown how the functions of the new class are called to te
 If the test is run immediately after the hardware is powered on, you should allow at least 10 seconds from power-up until the test is run to let the IP stack to configure, particularly if the IP address is obtained via DHCP.
 
 Note: If you do not have a file system on your target, set the symbol `FILE_SYSTEM` to false (in `http-client.h`), then no file download test will be performed.
+
+## Blocking on Sockets at Read or Write
+Depending on the particular hardware you will run the project on, if the IP connection breaks (e.g. Ethernet cable pulled off or low radio signal on wireless connections) the software may block waiting on a socket read or write. There are various schemes to handle such cases as e.g. setting non-blocking flag on the sockets, using the `select()` API or setting a timeout on the sockets. The later method was implemented in the http client, however you must add a function to the `net_sockets.c` file (this implements the `mbedtls` interface to `LwIP`), as shown below:
+
+```c
+/*
+ * Proprietary call to set a socket timeout (in seconds) at read and write
+ */
+int
+mbedtls_net_set_timeout (mbedtls_net_context* ctx, int seconds)
+{
+  int ret;
+
+  struct timeval timeout =
+    { .tv_sec = seconds, .tv_usec = 0 };
+
+  if ((ret = setsockopt(ctx->fd, SOL_SOCKET, SO_SNDTIMEO, &timeout,
+                        sizeof(timeout))) == 0)
+    {
+      ret = setsockopt(ctx->fd, SOL_SOCKET, SO_RCVTIMEO, &timeout,
+                       sizeof(timeout));
+    }
+
+  return ret;
+}
+```
+
+The timeout can be set in the `http-client-config.h` file using the `MBEDTLS_SOCKET_RW_TIMEOUT` definition and is given in seconds. If set to 0, the socket blocks until data is received or sent.
 
 ## CA Certificates
 You may notice that the file `http-client.cpp` includes several certificates. You may need to add or remove certificates, depending on where you want to connect your http client to. For more information on this issue, please consult the mbedTLS web site (in particular https://os.mbed.com/docs/mbed-os/v5.15/tutorials/tls-tutorial.html).
