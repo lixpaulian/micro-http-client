@@ -40,6 +40,12 @@
 #define INVALID_SOCKET (SOCKET)(~0)
 #define SOCKETVALID(s) ((s) != INVALID_SOCKET)
 
+extern "C"
+{
+  extern int
+  mbedtls_net_set_timeout (mbedtls_net_context* ctx, int seconds);
+}
+
 using namespace os;
 
 namespace micro_http_client
@@ -144,7 +150,6 @@ namespace micro_http_client
         { len }
   {
     s_ = INVALID_SOCKET;
-    nonblocking_ = true;
     last_port_ = 0;
     recv_size_ = 0;
     write_size_ = len - 1;
@@ -205,27 +210,6 @@ namespace micro_http_client
   tcp_socket::on_close_internal (void)
   {
     on_close ();
-  }
-
-  bool
-  tcp_socket::set_non_blocking (bool nonblock)
-  {
-    nonblocking_ = nonblock;
-
-    if (SOCKETVALID(s_))
-      {
-        if (nonblock)
-          {
-            mbedtls_error_ = mbedtls_net_set_nonblock (
-                (mbedtls_net_context*) &s_);
-          }
-        else
-          {
-            mbedtls_error_ = mbedtls_net_set_block ((mbedtls_net_context*) &s_);
-          }
-      }
-
-    return (mbedtls_error_ == 0);
   }
 
   bool
@@ -383,9 +367,15 @@ namespace micro_http_client
       }
     s_ = s;
 
-    // restore setting if it was set in invalid state. static call
-    // because s_ is intentionally still invalid here.
-    set_non_blocking (nonblocking_);
+#if MBEDTLS_SOCKET_RW_TIMEOUT > 0
+    if (mbedtls_net_set_timeout ((mbedtls_net_context*) &s_,
+    MBEDTLS_SOCKET_RW_TIMEOUT))
+      {
+#if HTTPC_DEBUG > 0
+        trace::printf ("%s(): set socket r/w timeout failed\n", __func__);
+#endif
+      }
+#endif
 
     if (useSSL)
       {

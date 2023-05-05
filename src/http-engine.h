@@ -72,6 +72,12 @@
 #define MBEDTLS_SSL_MAJOR_VERSION MBEDTLS_SSL_MAJOR_VERSION_3
 #endif
 
+// optionally set a timeout (in seconds) on socket read and write;
+// if 0, the r/w calls will block
+#if !defined MBEDTLS_SOCKET_RW_TIMEOUT
+#define MBEDTLS_SOCKET_RW_TIMEOUT 0
+#endif
+
 // in combination with MBEDTLS_SSL_MAJOR_VERSION_3, this gives TLS v1.2
 #if !defined MBEDTLS_SSL_MINOR_VERSION
 #define MBEDTLS_SSL_MINOR_VERSION MBEDTLS_SSL_MINOR_VERSION_3
@@ -139,9 +145,6 @@ namespace micro_http_client
 
     bool
     is_open (void);
-
-    bool
-    set_non_blocking (bool nonblock);
 
     const char*
     get_host (void)
@@ -232,8 +235,6 @@ namespace micro_http_client
     bool append_;
 
     long s_;
-    bool nonblocking_;  // default true, otherwise the current thread is blocked
-                        // while waiting for input
     ssl_context* ctx_;
 
     const char* last_host_;
@@ -421,9 +422,9 @@ namespace micro_http_client
     void
     on_recv_internal (uint8_t* buf, unsigned int size);
 
-    static constexpr uint8_t VERSION_MAJOR = 0;
-    static constexpr uint8_t VERSION_MINOR = 9;
-    static constexpr uint8_t VERSION_PATCH = 7;
+    static constexpr uint8_t VERSION_MAJOR = 1;
+    static constexpr uint8_t VERSION_MINOR = 0;
+    static constexpr uint8_t VERSION_PATCH = 0;
 
     // request attributes
     const char* user_agent_;
