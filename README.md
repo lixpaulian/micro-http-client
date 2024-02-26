@@ -15,7 +15,7 @@ To install the package using `xpm` you must make sure that you have already `nod
 ```sh
 cd my-project
 xpm init # Add a package.json if not already present
-xpm install github:lixpaulian/micro-http-client#v2.2.0 --save-dev --copy
+xpm install github:lixpaulian/micro-http-client#v1.0.0 --save-dev --copy
 ```
 
 Note: Without `--copy`, the default is to create a link to a read-only instance of the package in the `xpm` central store.
