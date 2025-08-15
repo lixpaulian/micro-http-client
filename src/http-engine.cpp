@@ -1,7 +1,7 @@
 /*
  * http-engine.cpp
  *
- * Copyright (c) 2022-2023 Lix N. Paulian (lix@paulian.net)
+ * Copyright (c) 2022-2025 Lix N. Paulian (lix@paulian.net)
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -114,7 +114,6 @@ namespace micro_http_client
         mbedtls_ssl_conf_ca_chain (&conf, &cacert, NULL);
 
         /* SSLv3, TLS 1.0 and 1.1 are deprecated, minimum should be TLS 1.2 */
-        /* TODO: Due to the old update server currently set to TLS 1.0 */
         mbedtls_ssl_conf_min_version (&conf, MBEDTLS_SSL_MAJOR_VERSION,
         MBEDTLS_SSL_MINOR_VERSION);
 
@@ -934,6 +933,13 @@ namespace micro_http_client
                                sizeof(header_buff_) - count,
                                "Content-Length: %d\r\nContent-Type: %s\r\n",
                                req.post_len, content_type_);
+          }
+
+        if (req.extra_header)
+          {
+            count += snprintf (header_buff_ + count,
+                               sizeof(header_buff_) - count, "%s\r\n",
+                               req.extra_header);
           }
 
         count += snprintf (header_buff_ + count, sizeof(header_buff_) - count,

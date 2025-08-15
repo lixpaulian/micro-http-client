@@ -1,7 +1,7 @@
 /*
  * http-engine.h
  *
- * Copyright (c) 2022-2023 Lix N. Paulian (lix@paulian.net)
+ * Copyright (c) 2022-2025 Lix N. Paulian (lix@paulian.net)
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -424,7 +424,7 @@ namespace micro_http_client
 
     static constexpr uint8_t VERSION_MAJOR = 1;
     static constexpr uint8_t VERSION_MINOR = 0;
-    static constexpr uint8_t VERSION_PATCH = 0;
+    static constexpr uint8_t VERSION_PATCH = 1;
 
     // request attributes
     const char* user_agent_;
