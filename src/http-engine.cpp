@@ -1,7 +1,7 @@
 /*
  * http-engine.cpp
  *
- * Copyright (c) 2022-2025 Lix N. Paulian (lix@paulian.net)
+ * Copyright (c) 2022-2026 Lix N. Paulian (lix@paulian.net)
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -1206,6 +1206,13 @@ namespace micro_http_client
                     result = redirect (location_, forceGET);
                   }
               }
+              break;
+              
+          case 400: // handle some of the 40x errors ("not found" etc.)
+          case 401:
+          case 403:
+          case 404:
+            result = true;
             break;
 
           default:
