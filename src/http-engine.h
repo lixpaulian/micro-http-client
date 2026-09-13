@@ -424,7 +424,7 @@ namespace micro_http_client
 
     static constexpr uint8_t VERSION_MAJOR = 1;
     static constexpr uint8_t VERSION_MINOR = 0;
-    static constexpr uint8_t VERSION_PATCH = 2;
+    static constexpr uint8_t VERSION_PATCH = 3;
 
     // request attributes
     const char* user_agent_;
